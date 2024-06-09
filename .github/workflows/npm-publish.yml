@@ -23,5 +23,5 @@ jobs:
 
     - name: Restart backend server with pm2
       run: |
-        pm2 list | grep "backendserver" || pm2 start index.js --name=backendserver
+        pm2 list | grep "backendserver" || pm2 start index.mjs --name=backendserver
         pm2 restart backendserver
