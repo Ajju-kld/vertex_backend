@@ -16,7 +16,7 @@ app.use(requestLogger);
 app.use(errorHandler);
 app.use(express.json());
 app.get('/api', (req, res) => {
-    res.send({message: 'development server is running fine on api/!'});
+    res.send(message: 'development server is running fine on api/!');
 });
 
 io.on("connection", (socket) => {
