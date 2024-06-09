@@ -16,7 +16,7 @@ app.use(requestLogger);
 app.use(errorHandler);
 app.use(express.json());
 app.get('/api', (req, res) => {
-    res.json({message: 'Hello World!'});
+    res.send({message: 'Hello World!'});
 });
 
 io.on("connection", (socket) => {
