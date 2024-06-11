@@ -4,16 +4,16 @@ import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
 // Define your post controller function
-const uploadPostContent =async (req, res) => {
+const uploadPostContent =async (req, res,next) => {
     // Implement the logic to handle the post upload here
    try {
-    return  await uploadPost(req);
+      await uploadPost(req);
 
      // Return a response to the client
    
     
    } catch (error) {
- return res.status(500).json({ message: error.message });
+    next(error);
    }
 };
 const uploadPostDetails = async (req, res,next) => {
