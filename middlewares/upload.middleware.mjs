@@ -9,7 +9,7 @@ const storage = (destination) =>
     destination: function (req, file, cb) {
       const folderPath = path.join(
         __dirname,
-        `../../../../../vertex/media/${destination}`
+        `./home/vertex/media/${destination}`
       );
 
       // Create the destination folder if it doesn't exist
@@ -26,7 +26,7 @@ const storage = (destination) =>
       // Filename format: <user_name>-<timestamp>.<extension>
       cb(
         null,
-        req.user.firstName + "-" + Date.now() + path.extname(file.originalname)
+        req.user.username + "-" + Date.now() + path.extname(file.originalname)
       );
     },
   });
