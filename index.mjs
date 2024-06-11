@@ -8,6 +8,7 @@ import postRoutes from "./routes/post.routes.mjs";
 import { verifyToken } from "./middlewares/auth.middleware.mjs";
 import authRoutes from "./routes/auth.routes.mjs";
 import commentRoutes from "./routes/comment.routes.mjs";
+import multer from "multer";
 import interractionRoutes from "./routes/interaction.routes.mjs";
 const app = express();
 const server = http.createServer(app);

@@ -52,39 +52,45 @@ const upload = (destination, fieldName) =>
   }).single(fieldName);
 
 const uploadPost = async (req, res, next) => {
-  try {
-    let file_name='';
-    const destination = `${req.user.username}/posts`;
-     upload(destination, fieldName)(req, null, function (err) {
-       if (err instanceof multer.MulterError) {
-         // A multer error occurred (e.g., file size exceeded)
-         console.error("Multer error:", err);
-         reject(err);
-       } else if (err) {
-         // Other errors occurred
-         console.error("Upload error:", err);
-         reject(err);
-       }
+
+ const destination = `${req.user.username}/posts`;
+const fieldname = "post";
+  upload(destination, fieldname)(req, res, async function (err) {
+    try {
+      if (err instanceof multer.MulterError) {
+        // A multer error occurred (e.g., file size exceeded)
+        return res.status(400).json({ success: false, message: err.message });
+      } else if (err) {
+        // Other errors occurred
+        return res.status(500).json({ success: false, message: err.message });
+      }
+
       // File uploaded successfully
       if (!req.file) {
         return res
           .status(400)
           .json({ success: false, message: "No file uploaded" });
       }
-      file_name = req.file.path.split("/").pop();
-      console.log(file_name);
-      console.log(req.file);
+
+      // Store file path or URL in the activity document
+
+      const file_name = req.file.path.split("/").pop();
+
+   
+
+      // Save the updated activity document
  
-
-      
-    
-
+      res.status(200).json({
+        success: true,
+        message: "file uploaded successfully",
+        filename: file_name,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Error saving activity with proof" });
+    }
   });
-  return res.status(200).send({ message: "File uploaded successfully", file_name });
-
-  } catch (error) {
-  res.status(error.status).send({ message: error.message });
-  }
 };
 
 export { uploadPost };

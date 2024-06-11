@@ -7,7 +7,7 @@ import User from "../models/user.model.mjs";
 const uploadPostContent =async (req, res) => {
     // Implement the logic to handle the post upload here
    try {
-     const post_url = await uploadPost(req);
+    return  await uploadPost(req);
 
      // Return a response to the client
    
