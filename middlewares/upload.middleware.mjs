@@ -40,9 +40,9 @@ const upload = (destination, fieldName) =>
     fileFilter: function (req, file, next) {
       // Check file type
       if (file.mimetype.startsWith("image/")|| file.mimetype.startsWith("video/")) {
-        next(null, true);
+        cb(null, true);
       } else {
-        next(new Error("Only images are allowed"));
+        cb(new Error("Only images are allowed"));
       }
     },
   }).single(fieldName);
@@ -72,13 +72,16 @@ const uploadPost = async (req, res, next) =>
                    .json({ success: false, message: "No file uploaded" });
                }
                  file_name = req.file.path.split("/").pop();
+console.log(file_name);
+                // Return the file path
+               res.status(200).json({ success: true, fileURL: file_name });
 
                 
              });
 
 res.status(200).json({message: "File uploaded successfully, please wait...", success: true,fileURLToPath: file_name});
         } catch (error) {
-            next(error);
+           console.log(error);
             
         }
 
