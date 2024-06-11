@@ -38,15 +38,15 @@ const upload = (destination, fieldName) =>
     limits: {
       fileSize: 200 * 1024 * 1024, // Limit file size to 5MB
     },
-    fileFilter: function (req, file, next) {
+    fileFilter: function (req, file, cb) {
       // Check file type
       if (
         file.mimetype.startsWith("image/") ||
         file.mimetype.startsWith("video/")
       ) {
-        next(null, true);
+        cb(null, true);
       } else {
-        next(new Error("Only images and videos are allowed"));
+        cb(new Error("Only images are allowed"));
       }
     },
   }).single(fieldName);
@@ -55,14 +55,16 @@ const uploadPost = async (req, res, next) => {
   try {
     let file_name='';
     const destination = `${req.user.username}/posts`;
-    await new Promise((resolve, reject) => { upload(destination, fieldName)(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-        // A multer error occurred (e.g., file size exceeded)
-        return res.status(400).json({ success: false, message: err.message });
-      } else if (err) {
-        // Other errors occurred
-        return res.status(500).json({ success: false, message: err.message });
-      }
+    await new Promise((resolve, reject) => { upload(destination, fieldName)(req, null, function (err) {
+       if (err instanceof multer.MulterError) {
+         // A multer error occurred (e.g., file size exceeded)
+         console.error("Multer error:", err);
+         reject(err);
+       } else if (err) {
+         // Other errors occurred
+         console.error("Upload error:", err);
+         reject(err);
+       }
       // File uploaded successfully
       if (!req.file) {
         return res
