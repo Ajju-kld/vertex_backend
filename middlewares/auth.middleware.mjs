@@ -25,11 +25,7 @@ user.followingCount = user.following.length;
           .status(401)
           .json({ message: "Unauthorized", success: false });
 
-          if (!user.time <1) {
-            return response
-              .status(401)
-              .json({ message: "Reached today's limit", success: false });
-          }
+        console.log(user.time);
       request.user = user;
 
       next();
