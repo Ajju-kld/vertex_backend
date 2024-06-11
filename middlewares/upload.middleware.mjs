@@ -9,7 +9,7 @@ const storage = (destination) =>
     destination: function (req, file, cb) {
       const folderPath = path.join(
         __dirname,
-        `./home/vertex/media/${destination}`
+        `../../../vertex/media/${destination}`
       );
 
       // Create the destination folder if it doesn't exist
@@ -53,9 +53,9 @@ const upload = (destination, fieldName) =>
 
 const uploadPost = async (req, res, next) => {
   try {
+    let file_name='';
     const destination = `${req.user.username}/posts`;
-    const fieldName = "post";
-    upload(destination, fieldName)(req, res, function (err) {
+    await new Promise((resolve, reject) => { upload(destination, fieldName)(req, res, function (err) {
       if (err instanceof multer.MulterError) {
         // A multer error occurred (e.g., file size exceeded)
         return res.status(400).json({ success: false, message: err.message });
@@ -69,13 +69,16 @@ const uploadPost = async (req, res, next) => {
           .status(400)
           .json({ success: false, message: "No file uploaded" });
       }
-      const file_name = req.file.path.split("/").pop();
+      file_name = req.file.path.split("/").pop();
       console.log(file_name);
       console.log(req.file);
-     
+  resolve();
 
-      return file_name;
+      
     });
+return file_name;
+  });
+
   } catch (error) {
     next(error);
   }
