@@ -1,18 +1,25 @@
 import path from "path";
 import multer from "multer";
+import fs from "fs";
 
-// create storage object for storing files 
-
+// create storage object for storing files
 const storage = (destination) =>
   multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(
-        null,
-        path.join(
-          __dirname,
-          `../../../../../vertex/media/${destination}`
-        )
-      ); // Destination folder
+      const folderPath = path.join(
+        __dirname,
+        `../../../../../vertex/media/${destination}`
+      );
+
+      // Create the destination folder if it doesn't exist
+      fs.mkdir(folderPath, { recursive: true }, function (err) {
+        if (err) {
+          // Handle error, e.g., folder already exists
+          console.error("Error creating destination folder:", err);
+          return cb(err);
+        }
+        cb(null, folderPath); // Destination folder
+      });
     },
     filename: function (req, file, cb) {
       // Filename format: <user_name>-<timestamp>.<extension>
@@ -32,47 +39,42 @@ const upload = (destination, fieldName) =>
     },
     fileFilter: function (req, file, next) {
       // Check file type
-      if (file.mimetype.startsWith("image/")|| file.mimetype.startsWith("video/")) {
+      if (
+        file.mimetype.startsWith("image/") ||
+        file.mimetype.startsWith("video/")
+      ) {
         next(null, true);
       } else {
-        next(new Error("Only images are allowed"));
+        next(new Error("Only images and videos are allowed"));
       }
     },
   }).single(fieldName);
 
-const uploadPost = async (req, res, next) =>
-    {
-        try {
-            const destination=`${req.user.username}/posts`;
-            const fieldName = 'post';
-             upload(destination, fieldName)(req,res,function (err) {
-               if (err instanceof multer.MulterError) {
-                 // A multer error occurred (e.g., file size exceeded)
-                 return res
-                   .status(400)
-                   .json({ success: false, message: err.message });
-               } else if (err) {
-                 // Other errors occurred
-                 return res
-                   .status(500)
-                   .json({ success: false, message: err.message });
-               }
-               // File uploaded successfully
-               if (!req.file) {
-                 return res
-                   .status(400)
-                   .json({ success: false, message: "No file uploaded" });
-               }
-                const file_name = req.file.path.split("/").pop();
+const uploadPost = async (req, res, next) => {
+  try {
+    const destination = `${req.user.username}/posts`;
+    const fieldName = "post";
+    upload(destination, fieldName)(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        // A multer error occurred (e.g., file size exceeded)
+        return res.status(400).json({ success: false, message: err.message });
+      } else if (err) {
+        // Other errors occurred
+        return res.status(500).json({ success: false, message: err.message });
+      }
+      // File uploaded successfully
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ success: false, message: "No file uploaded" });
+      }
+      const file_name = req.file.path.split("/").pop();
 
-                return file_name;
-             });
+      return file_name;
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-
-        } catch (error) {
-            next(error);
-            
-        }
-
-    }
-export {uploadPost}
+export { uploadPost };
