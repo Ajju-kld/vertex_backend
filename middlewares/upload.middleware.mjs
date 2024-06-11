@@ -1,18 +1,25 @@
 import path from "path";
 import multer from "multer";
+const __dirname=path.resolve();
+import fs from "fs";
 
 // create storage object for storing files 
 
 const storage = (destination) =>
+
   multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(
-        null,
-        path.join(
-          __dirname,
-          `../../../../../vertex/media/${destination}`
-        )
-      ); // Destination folder
+        const folderPath = path.join(__dirname, `../../vertex/media/${destination}`);
+        
+        // Create the destination folder if it doesn't exist
+        fs.mkdir(folderPath, { recursive: true }, function(err) {
+            if (err) {
+                // Handle error, e.g., folder already exists
+                console.error("Error creating destination folder:", err);
+                return cb(err);
+            }
+            cb(null, folderPath); // Destination folder
+        });
     },
     filename: function (req, file, cb) {
       // Filename format: <user_name>-<timestamp>.<extension>
