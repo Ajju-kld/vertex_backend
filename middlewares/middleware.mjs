@@ -16,7 +16,7 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
   if (error.name === "CastError") {
-    return response.status(400).send({ message: "malformatted id" });
+    return response.status(400).send({ message: "malformatted id" ,success:false},);
   }
   if (error.name === "ValidationError") {
     const errors = {};
@@ -25,15 +25,19 @@ const errorHandler = (error, request, response, next) => {
       errors[key] = error.errors[key].message;
     });
 
-    return response.status(400).json({ message: JSON.stringify(errors) });
+    return response
+      .status(400)
+      .json({ message: JSON.stringify(errors), success: false });
   }
   if (error.name === "JsonWebTokenError") {
-    return response.status(400).json({ message: error.message });
+    return response
+      .status(400)
+      .json({ message: error.message, success: false });
   }
   if (error.name === "TokenExpiredError") {
-    return response.status(401).json({ message: "token expired" });
+    return response.status(401).json({ message: "token expired", success: false });
   }
-  return response.status(401).json({ message: error.message });
+  return response.status(401).json({ message: error.message , success: false });
   // next(error);
 };
 

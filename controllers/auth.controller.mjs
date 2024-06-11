@@ -12,10 +12,10 @@ try {
 
     const{username,email,password} = req.body;
     if (!email || !password || !username) {
-        return res.status(400).json({ message: "Email and password  and username are required" });
+        return res.status(400).json({ message: "Email and password  and username are required",success: false }); 
     }
     if (password.length < 6) {
-        return res.status(400).json({ message: "Password must be at least 6 characters" });
+        return res.status(400).json({ message: "Password must be at least 6 characters" ,success: false });
     }
 
     const hash= await bcrypt.hash(req.body.password,10);
@@ -30,7 +30,7 @@ try {
     const token = jwt.sign(tokenPairs, SECRET, {
         expiresIn: "12d"
     });
-    res.status(201).json({ message: "User created", token });
+    res.status(201).json({ message: "User created", token ,success: true });
 
 
 } catch (error) {
@@ -44,21 +44,21 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
+            return res.status(400).json({ message: "Email and password are required" ,success: false });
         }
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found",success: false });
         }
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Invalid credentials" ,success: false });
         }
         const tokenPairs = { userId: user._id, email, username: user.username };
         const token = jwt.sign(tokenPairs, SECRET, {
             expiresIn: "7d"
         });
-        res.status(200).json({ message: "Login successful", token });
+        res.status(200).json({ message: "Login successful", token,success: true });
     } catch (error) {
         next(error);
     }
@@ -85,7 +85,7 @@ try {
 const profile=uploadPost(req,res);
 user.profile=profile;
 await user.save();
-res.status(200).json({ message: "Profile uploaded successfully", profile });
+res.status(200).json({ message: "Profile uploaded successfully", profile ,success: true });
 
 
 } catch (error) {
