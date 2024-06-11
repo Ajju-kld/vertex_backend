@@ -2,6 +2,7 @@ import path from "path";
 import multer from "multer";
 import fs from "fs";
 
+const __dirname=path.resolve();
 // create storage object for storing files
 const storage = (destination) =>
   multer.diskStorage({
@@ -69,6 +70,9 @@ const uploadPost = async (req, res, next) => {
           .json({ success: false, message: "No file uploaded" });
       }
       const file_name = req.file.path.split("/").pop();
+      console.log(file_name);
+      console.log(req.file);
+     
 
       return file_name;
     });
