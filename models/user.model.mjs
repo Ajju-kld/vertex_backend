@@ -24,16 +24,18 @@ const userSchema = new mongoose.Schema({
         default: Date.now
     },
     followers:
-    {
-        type: mongoose.Schema.Types.ObjectId,
+    {   type: Array,
         ref: "User",
-        default:[]
+        default: [],
+        required: true
+        
     },
     following:
     {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Array,
+        default: [],
         ref: "User",
-        default:[]
+       required: false
     },
     private: {
         type: Boolean,
