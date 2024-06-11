@@ -55,7 +55,7 @@ const uploadPost = async (req, res, next) => {
   try {
     let file_name='';
     const destination = `${req.user.username}/posts`;
-    await new Promise((resolve, reject) => { upload(destination, fieldName)(req, null, function (err) {
+     upload(destination, fieldName)(req, null, function (err) {
        if (err instanceof multer.MulterError) {
          // A multer error occurred (e.g., file size exceeded)
          console.error("Multer error:", err);
@@ -74,13 +74,13 @@ const uploadPost = async (req, res, next) => {
       file_name = req.file.path.split("/").pop();
       console.log(file_name);
       console.log(req.file);
-  resolve();
+ 
 
       
-    });
+    
 
   });
-  res.status(200).send({ message: "File uploaded successfully", file_name });
+  return res.status(200).send({ message: "File uploaded successfully", file_name });
 
   } catch (error) {
   res.status(error.status).send({ message: error.message });
