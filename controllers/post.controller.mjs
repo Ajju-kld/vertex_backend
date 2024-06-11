@@ -55,8 +55,9 @@ const likePost = async (req, res, next) => {
             return res.status(404).json({ message: "Post id should be provided" });
         }
         const post = await Post.findById(id);
-if (post.likes.has(user.id)) {
-    post.likes.delete(user.id);
+const index = post.likes.findIndex(like => like === user.id);
+if (index !== -1) {
+    post.likes.splice(index, 1);
 }
         await post.save();
         res.status(200).json({ message: "Post liked successfully", post });
@@ -105,8 +106,9 @@ const likedComment=async (req,res,next)=>{
         if (!comment) {
             return res.status(404).json({ message: "invalid comment_id" });
         }
-        if(comment.likes.has(user._id)) {
-          comment.likes.delete(user._id);
+        const index = comment.likes.findIndex(like => like === user._id);
+        if (index !== -1) {
+          comment.likes.splice(index, 1);
         }
         await comment.save();
         res.status(200).json({ message: "Comment liked successfully", comment });
