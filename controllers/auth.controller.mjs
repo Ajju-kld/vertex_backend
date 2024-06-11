@@ -17,7 +17,9 @@ try {
     if (password.length < 6) {
         return res.status(400).json({ message: "Password must be at least 6 characters" ,success: false });
     }
-
+if(await User.findOne({ email})){
+    return res.status(400).json({ message: "Email already exists",success: false });
+}
     const hash= await bcrypt.hash(req.body.password,10);
 
     const user = new User({
