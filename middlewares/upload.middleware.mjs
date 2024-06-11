@@ -83,7 +83,7 @@ const uploadPost = async (req, res, next) => {
   res.status(200).send({ message: "File uploaded successfully", file_name });
 
   } catch (error) {
-    next(error);
+  res.status(error.status).send({ message: error.message });
   }
 };
 
