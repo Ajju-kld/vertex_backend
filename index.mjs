@@ -15,7 +15,6 @@ const io = new Server(server);
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
-app.use(errorHandler);
 app.use(express.urlencoded({extended:true}));
 app.get('/api', (req, res) => {
   res.send( 'development server is running fine on api/!');
@@ -36,3 +35,4 @@ app.get('/api', (req, res) => {
       server.listen(5000, () => {
         console.log('the server listening on :5000');
         });
+      app.use(errorHandler);

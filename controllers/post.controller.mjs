@@ -10,7 +10,7 @@ const uploadPostContent =async (req, res,next) => {
      const post_url = await uploadPost(req);
 
      // Return a response to the client
-     res.status(200).json({ message: "Post uploaded successfully",url: post_url });
+   
     
    } catch (error) {
     next(error);
