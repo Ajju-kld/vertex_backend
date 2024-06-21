@@ -33,7 +33,7 @@ app.get('/api', (req, res) => {
       app.use("/interaction",verifyToken,interractionRoutes);
       
       
-      server.listen(5000, () => {
-        console.log('the server listening on :5000');
+      server.listen(3000, () => {
+        console.log('the server listening on :3000');
         });
       app.use(errorHandler);
