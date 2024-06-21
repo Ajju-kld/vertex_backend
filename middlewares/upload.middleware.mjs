@@ -25,7 +25,7 @@ const storage = (destination) =>
       // Filename format: <user_name>-<timestamp>.<extension>
       cb(
         null,
-        req.user.firstName + "-" + Date.now() + path.extname(file.originalname)
+        req.user.username + "-" + Date.now() + path.extname(file.originalname)
       );
     },
   });
@@ -75,7 +75,8 @@ const uploadPost = async (req, res, next) => {
       console.log(file_name);
 
       // Return the file path
-      res.status(200).json({ success: true, fileURL: file_name });
+      return file_name;
+      
     });
   } catch (error) {
     console.log(error);

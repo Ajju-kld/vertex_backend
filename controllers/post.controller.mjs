@@ -7,10 +7,10 @@ import User from "../models/user.model.mjs";
 const uploadPostContent =async (req, res,next) => {
     // Implement the logic to handle the post upload here
    try {
-      await uploadPost(req);
+    const post=  await uploadPost(req);
 
      // Return a response to the client
-   
+   res.status(200).json({ message: "Post uploaded successfully", post});
     
    } catch (error) {
     next(error);
