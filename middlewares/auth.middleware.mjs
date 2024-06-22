@@ -18,8 +18,9 @@ const verifyToken = async (request, response, next) => {
 
       const user = await User.findById(userId)
         .select("-passwordHash")
-user.followersCount = user.followers.length;
-user.followingCount = user.following.length;
+   
+user.followersCount = user.followers.length || 0;
+user.followingCount = user.following.length || 0;
       if (!user)
         return response
           .status(401)
