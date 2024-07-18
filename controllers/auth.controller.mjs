@@ -18,8 +18,16 @@ try {
         return res.status(400).json({ message: "Password must be at least 6 characters" ,success: false });
     }
 if(await User.findOne({ email})){
+    console.log("Email already exists");
     return res.status(400).json({ message: "Email already exists",success: false });
 }
+if (await User.findOne({ username })) {
+    console.log("Username already exists");
+    return res.status(400).json({ message: "Username already exists",success: false });
+    
+}
+
+
     const hash= await bcrypt.hash(req.body.password,10);
 
     const user = new User({

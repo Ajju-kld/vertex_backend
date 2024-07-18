@@ -17,7 +17,8 @@ const verifyToken = async (request, response, next) => {
       const { userId } = jwt.verify(token,SECRET);
 
       const user = await User.findById(userId)
-        .select("-passwordHash")
+        .select("-password")
+       
 user.followersCount = user.followers.length;
 user.followingCount = user.following.length;
       if (!user)
