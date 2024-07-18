@@ -94,8 +94,7 @@ try {
   }
 const profile=uploadprofile(req,res);
 user.profile=profile;
-const profile_url=user.profile.split("/").pop();
-user.profile = `http://143.244.141.7/profile/${profile_url}`;
+
 await user.save();
 res.status(200).json({ message: "Profile uploaded successfully", profile ,success: true });
 

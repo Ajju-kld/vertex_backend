@@ -96,7 +96,7 @@ const uploadprofile = async (req, res) => {
     let file_name = "";
 
     const destination = `${req.user.username}/profile`;
-    const fieldName = "post";
+    const fieldName = "profile";
     await new Promise((resolve, reject) => {
       upload(destination, fieldName)(req, res, function (err) {
         if (err instanceof multer.MulterError) {
