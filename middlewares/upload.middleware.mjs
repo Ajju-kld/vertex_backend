@@ -88,4 +88,48 @@ const uploadPost = async (req,res) => {
   }
 };
 
-export {uploadPost}
+
+
+
+const uploadprofile = async (req, res) => {
+  try {
+    let file_name = "";
+
+    const destination = `${req.user.username}/profile`;
+    const fieldName = "post";
+    await new Promise((resolve, reject) => {
+      upload(destination, fieldName)(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+          // A multer error occurred (e.g., file size exceeded)
+          reject(err);
+          return res.status(400).json({ success: false, message: err.message });
+        } else if (err) {
+          // Other errors occurred
+          reject(err);
+          return res.status(500).json({ success: false, message: err.message });
+        }
+        // File uploaded successfully
+        if (!req.file) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No file uploaded" });
+        }
+        file_name = req.file.path.split("/").pop();
+        resolve();
+      });
+
+      // Extract the file name from the uploaded file path
+
+      console.log(file_name);
+
+      // Return the file path
+      return file_name;
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+
+export {uploadPost,uploadprofile}

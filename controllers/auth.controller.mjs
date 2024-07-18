@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET } from "../utils/config.mjs";
 import{promisify} from "util";
 import fs from "fs";
-import { uploadPost } from "../middlewares/upload.middleware.mjs";
+import { uploadPost, uploadprofile } from "../middlewares/upload.middleware.mjs";
 const unlinkAsync = promisify(fs.unlink);
 
 const Register= async(req,res,next)=>{
@@ -92,8 +92,10 @@ try {
         console.log(`Previous profile image does not exist`);
       }
   }
-const profile=uploadPost(req,res);
+const profile=uploadprofile(req,res);
 user.profile=profile;
+const profile_url=profile.split("/").pop();
+user.profile = `http://143.244.141.7/profile/${profile_url}`;
 await user.save();
 res.status(200).json({ message: "Profile uploaded successfully", profile ,success: true });
 
