@@ -92,7 +92,7 @@ try {
         console.log(`Previous profile image does not exist`);
       }
   }
-const profile=uploadprofile(req,res);
+const profile=await uploadprofile(req,res);
 user.profile=profile;
 
 await user.save();
