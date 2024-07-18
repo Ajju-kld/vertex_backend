@@ -2,14 +2,13 @@ import path from "path";
 import multer from "multer";
 const __dirname=path.resolve();
 import fs from "fs";
-
 // create storage object for storing files 
 
 const storage = (destination) =>
 
   multer.diskStorage({
     destination: function (req, file, cb) {
-        const folderPath = path.join(__dirname, `../../vertex/media/${destination}`);
+        const folderPath = path.join(__dirname, `../vertex/media/${destination}`);
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
@@ -48,19 +47,21 @@ const upload = (destination, fieldName) =>
   }).single(fieldName);
 
 
-const uploadPost = async (req, res, next) => {
+const uploadPost = async (req,res) => {
   try {
     let file_name = "";
 
     const destination = `${req.user.username}/posts`;
     const fieldName = "post";
-
-    upload(destination, fieldName)(req, res, function (err) {
+      await new Promise((resolve, reject) => {
+    upload(destination, fieldName)(req,res,function (err) {
       if (err instanceof multer.MulterError) {
         // A multer error occurred (e.g., file size exceeded)
+        reject(err);
         return res.status(400).json({ success: false, message: err.message });
       } else if (err) {
         // Other errors occurred
+        reject(err);
         return res.status(500).json({ success: false, message: err.message });
       }
       // File uploaded successfully
@@ -69,9 +70,12 @@ const uploadPost = async (req, res, next) => {
           .status(400)
           .json({ success: false, message: "No file uploaded" });
       }
+      file_name = req.file.path.split("/").pop();
+      resolve();
+    });
 
       // Extract the file name from the uploaded file path
-      file_name = req.file.path.split("/").pop();
+      
       console.log(file_name);
 
       // Return the file path
@@ -80,7 +84,7 @@ const uploadPost = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    next(error);
+    
   }
 };
 
