@@ -1,52 +1,59 @@
 import path from "path";
 import multer from "multer";
-import AWS from "aws-sdk";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import fs from "fs";
-import { DO_SPACES_BUCKET,DO_SPACES_KEY,DO_SPACES_SECRET } from "../utils/config.mjs";
+import {
+  DO_SPACES_BUCKET,
+  DO_SPACES_KEY,
+  DO_SPACES_SECRET,
+} from "../utils/config.mjs";
+
+console.log("DO_SPACES_BUCKET:", DO_SPACES_BUCKET);
+console.log("DO_SPACES_KEY:", DO_SPACES_KEY);
 
 // Configure AWS SDK for DigitalOcean Spaces
-const spacesEndpoint = new AWS.Endpoint(
-  "https://vertex-bucket.blr1.digitaloceanspaces.com"
-);
-const s3 = new AWS.S3({
-  endpoint: spacesEndpoint,
-  accessKeyId: DO_SPACES_KEY,
-  secretAccessKey: DO_SPACES_SECRET,
-});
+const clientConfig = {
+  endpoint: "https://vertex-bucket.blr1.digitaloceanspaces.com",
+  region: "", // DigitalOcean Spaces does not require a specific region setting
+  credentials: {
+    accessKeyId: DO_SPACES_KEY,
+    secretAccessKey: DO_SPACES_SECRET,
+  },
+};
+
+const s3Client = new S3Client(clientConfig);
 
 const BUCKET_NAME = process.env.DO_SPACES_BUCKET || "your-bucket-name";
 
 // Multer configuration for temporary file storage
 const upload = multer({ dest: "temp/" });
-
-const uploadToSpaces = (file, destination) => {
-  return new Promise((resolve, reject) => {
+const uploadToSpaces = async (file, destination) => {
+  try {
     const fileStream = fs.createReadStream(file.path);
     const fileName = `${destination}/${path.basename(file.path)}`;
 
-    const params = {
-      Bucket: BUCKET_NAME,
+    const uploadParams = {
+      Bucket: DO_SPACES_BUCKET,
       Key: fileName,
       Body: fileStream,
       ACL: "public-read",
       ContentType: file.mimetype,
     };
 
-    s3.upload(params, (err, data) => {
-      // Delete the temporary file
-      fs.unlink(file.path, (unlinkErr) => {
-        if (unlinkErr)
-          console.error("Error deleting temporary file", unlinkErr);
-      });
+    const data = await s3Client.send(new PutObjectCommand(uploadParams));
 
-      if (err) {
-        console.error("Error uploading to DigitalOcean Spaces", err);
-        reject(err);
-      } else {
-        resolve(data.Location);
+    // Delete the temporary file
+    fs.unlink(file.path, (unlinkErr) => {
+      if (unlinkErr) {
+        console.error("Error deleting temporary file", unlinkErr);
       }
     });
-  });
+
+    return data;
+  } catch (error) {
+    console.error("Error uploading to DigitalOcean Spaces", error);
+    throw error;
+  }
 };
 
 const uploadPost = async (req, res) => {
@@ -90,15 +97,18 @@ const uploadProfile = async (req, res) => {
     console.log("Destination:", destination);
     console.log("Field name:", fieldName);
 
-    if(req.user.profile){
-      s3.deleteObject({
-        Bucket: BUCKET_NAME,
-        Key: req.user.profile
-      }, (err, data) => {
-        if (err) {
-          console.error("Error deleting old profile picture", err);
-        }});
-
+    if (req.user.profile) {
+      s3.deleteObject(
+        {
+          Bucket: BUCKET_NAME,
+          Key: req.user.profile,
+        },
+        (err, data) => {
+          if (err) {
+            console.error("Error deleting old profile picture", err);
+          }
+        }
+      );
     }
 
     upload.single(fieldName)(req, res, async function (err) {
