@@ -14,11 +14,10 @@ import {
 const clientConfig = {
   endpoint: "https://vertex-bucket.blr1.digitaloceanspaces.com",
   region: "blr1", // DigitalOcean Spaces does not require a specific region setting
-
+  forcePathStyle: false,
   credentials: {
     accessKeyId: DO_SPACES_KEY,
     secretAccessKey: DO_SPACES_SECRET,
-    
   },
 };
 
