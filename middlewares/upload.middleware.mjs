@@ -34,14 +34,14 @@ const upload = (destination, fieldName) =>
   multer({
     storage: storage(destination),
     limits: {
-      fileSize: 200 * 1024 * 1024, // Limit file size to 5MB
-    },
+      fileSize: 200 * 1024 * 1024, // Limit file size to 200MB
+    },  
     fileFilter: function (req, file, cb) {
       // Check file type
-      if (file.mimetype.startsWith("image/")|| file.mimetype.startsWith("video/")) {
+      if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
         cb(null, true);
       } else {
-        cb(new Error("Only images are allowed"));
+        cb(new Error("Only images and videos are allowed"));
       }
     },
   }).single(fieldName);

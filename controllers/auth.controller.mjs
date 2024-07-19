@@ -94,6 +94,7 @@ try {
   }
 const profile=await uploadprofile(req,res);
 user.profile=profile;
+console.log(profile);
 
 await user.save();
 res.status(200).json({ message: "Profile uploaded successfully", profile ,success: true });
