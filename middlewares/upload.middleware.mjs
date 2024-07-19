@@ -8,7 +8,10 @@ const storage = (destination) =>
 
   multer.diskStorage({
     destination: function (req, file, cb) {
-        const folderPath = path.join(__dirname, `../vertex/media/${destination}`);
+        const folderPath = path.join(
+          __dirname,
+          `../../vertex/media/${destination}`
+        );
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
