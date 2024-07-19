@@ -33,7 +33,7 @@ const uploadToSpaces = async (file, destination) => {
     const fileName = `${destination}/${path.basename(file.path)}`;
 
     const uploadParams = {
-      Bucket: DO_SPACES_BUCKET,
+      Bucket: "vertex-bucket",
       Key: fileName,
       Body: fileStream,
       ACL: "public-read",
