@@ -7,12 +7,23 @@ import User from "../models/user.model.mjs";
 const uploadPostContent =async (req, res,next) => {
     // Implement the logic to handle the post upload here
    try {
-      await uploadPost(req);
-      const post=req.file.path.split("/").pop();
-    console.log(post);
+     
+      
+       const user=req.user;
+       const post= await Post.findById(req.params.id);
+       
+           if (!post) {
+               return res.status(404).json({ message: "Post not found" });
+           }
+           console.log(post);
+           console.log(user._id);
+    if (!post.user || !user._id || post.user.toString() !== user._id.toString()) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    req.post = post;
+    return await uploadPost(req,res);
      // Return a response to the client
-   res.status(200).json({ message: "Post uploaded successfully","post":post});
-    
+
    } catch (error) {
     next(error);
    }
@@ -21,7 +32,8 @@ const uploadPostDetails = async (req, res,next) => {
 try {
     const data=req.body;
     const user=req.user;
-    data.user=user;
+    data.user=user._id;
+
     if (!user) {
         return res.status(401).json({ message: "Unauthorized" });
     }
@@ -30,11 +42,7 @@ try {
             message:"User is required"
         });
     }
-    if (!data.post_url){
-        return res.status(404).json({
-            message:"Post url is required"
-        });
-    }
+    
     const post = new Post(data);
     await post.save();
     res.status(201).json({ message: "Post uploaded successfully", post });

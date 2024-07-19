@@ -6,7 +6,7 @@ import { deletePost, getPostbyId, likePost,  uploadPostContent, uploadPostDetail
 
 const router = Router();
 
-router.post('/upload',verifyToken,uploadPostContent);
+router.post('/upload/:id',verifyToken,uploadPostContent);
 router.get("/:id",verifyToken,getPostbyId)
 router.post('/uploadDetails',verifyToken,uploadPostDetails);
 router.put('/like/:id',verifyToken,likePost);

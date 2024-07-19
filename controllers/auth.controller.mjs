@@ -76,27 +76,7 @@ const login = async (req, res, next) => {
 
 const uploadProfile = async (req, res, next) => {
   try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ message: "No file uploaded", success: false });
-    }
-    const profile = await handleProfileUpload(req, res);
-    user.profile = profile;
-    console.log(profile);
-
-    await user.save();
-    res
-      .status(200)
-      .json({
-        message: "Profile uploaded successfully",
-        profile,
-        success: true,
-      });
+return await handleProfileUpload(req,res);
   } catch (error) {
     next(error);
   }
@@ -121,6 +101,6 @@ try {
 export {
     Register,
     login,
-    handleProfileUpload as uploadProfile,
+  uploadProfile,
     getSelfProfile
 };
