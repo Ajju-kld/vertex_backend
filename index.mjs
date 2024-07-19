@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(requestLogger);
 app.use(express.urlencoded({extended:true}));
 app.get('/api', (req, res) => {
-  res.send( 'development server is running fine on api/!');
+  res.send( 'development server is running fine on api/! in new try');
   });
   
   io.on("connection", (socket) => {
@@ -34,6 +34,6 @@ app.get('/api', (req, res) => {
       
       
       server.listen(5000, () => {
-        console.log('the server listening on :5000');
+        console.log('the server listening on :5000 port ');
         });
       app.use(errorHandler);
