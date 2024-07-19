@@ -8,11 +8,7 @@ const storage = (destination) =>
 
   multer.diskStorage({
     destination: function (req, file, cb) {
-        const folderPath = path.join(
-          __dirname,
-          `../../../vertex/media/${destination}`
-        );
-        console.log("Destination folder path:", folderPath);
+        const folderPath = path.join(__dirname, `../../vertex/media/${destination}`);
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
@@ -38,14 +34,14 @@ const upload = (destination, fieldName) =>
   multer({
     storage: storage(destination),
     limits: {
-      fileSize: 200 * 1024 * 1024, // Limit file size to 200MB
-    },  
+      fileSize: 200 * 1024 * 1024, // Limit file size to 5MB
+    },
     fileFilter: function (req, file, cb) {
       // Check file type
-      if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+      if (file.mimetype.startsWith("image/")|| file.mimetype.startsWith("video/")) {
         cb(null, true);
       } else {
-        cb(new Error("Only images and videos are allowed"));
+        cb(new Error("Only images are allowed"));
       }
     },
   }).single(fieldName);
@@ -97,28 +93,28 @@ const uploadPost = async (req,res) => {
 
 const uploadprofile = async (req, res) => {
   try {
-    console.log("Starting uploadprofile function");
     let file_name = "";
 
     const destination = `${req.user.username}/profile`;
     const fieldName = "profile";
-
-    console.log("Destination:", destination);
-    console.log("Field name:", fieldName);
-
-    file_name = await new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       upload(destination, fieldName)(req, res, function (err) {
-        console.log("Inside upload callback");
         if (err instanceof multer.MulterError) {
-          console.error("Multer error:", err);
+          // A multer error occurred (e.g., file size exceeded)
           reject(err);
           return res.status(400).json({ success: false, message: err.message });
         } else if (err) {
-          console.error("Other error:", err);
+          // Other errors occurred
           reject(err);
           return res.status(500).json({ success: false, message: err.message });
         }
-
+        // File uploaded successfully
+        if (!req.file) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No file uploaded" });
+        }
+   
         console.log("req.file:", req.file);
 
         if (!req.file) {
@@ -128,22 +124,24 @@ const uploadprofile = async (req, res) => {
             .status(400)
             .json({ success: false, message: "No file uploaded" });
         }
-          console.log(req.file.path);
+        console.log(req.file.path);
         const uploadedFileName = req.file.path.split("/").pop();
         console.log("Uploaded file name:", uploadedFileName);
         resolve(uploadedFileName);
       });
+
+      // Extract the file name from the uploaded file path
+
+      console.log(file_name);
+
+      // Return the file path
+      return file_name;
     });
-
-    console.log("File name after upload:", file_name);
-
-    // Return the file path
-    return file_name;
   } catch (error) {
-    console.error("Error in uploadprofile:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.log(error);
   }
 };
+
 
 
 export {uploadPost,uploadprofile}
