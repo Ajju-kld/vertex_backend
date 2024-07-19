@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET } from "../utils/config.mjs";
 import{promisify} from "util";
 import fs from "fs";
-import {  uploadProfile } from "../middlewares/upload.middleware.mjs";
+import {  uploadProfile as handleProfileUpload } from "../middlewares/upload.middleware.mjs";
 const unlinkAsync = promisify(fs.unlink);
 
 const Register= async(req,res,next)=>{
@@ -74,28 +74,33 @@ const login = async (req, res, next) => {
     }
 };
 
-const uploadProfile = async(req, res,next) => {
-try {
+const uploadProfile = async (req, res, next) => {
+  try {
     const user = req.user;
     if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
     if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded",success: false });
+      return res
+        .status(400)
+        .json({ message: "No file uploaded", success: false });
     }
-const profile=await uploadprofile(req,res);
-user.profile=profile;
-console.log(profile);
+    const profile = await handleProfileUpload(req, res);
+    user.profile = profile;
+    console.log(profile);
 
-await user.save();
-res.status(200).json({ message: "Profile uploaded successfully", profile ,success: true });
-
-
-} catch (error) {
+    await user.save();
+    res
+      .status(200)
+      .json({
+        message: "Profile uploaded successfully",
+        profile,
+        success: true,
+      });
+  } catch (error) {
     next(error);
-}
-
-}
+  }
+};
 const getSelfProfile = async(req, res,next) => {
 
 try {
@@ -116,6 +121,6 @@ try {
 export {
     Register,
     login,
-    uploadProfile,
+    handleProfileUpload as uploadProfile,
     getSelfProfile
 };
