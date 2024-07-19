@@ -2,13 +2,14 @@ import path from "path";
 import multer from "multer";
 const __dirname=path.resolve();
 import fs from "fs";
-// create storage object for storing files 
+// create storage object for storing files
+const MEDIA_BASE_PATH = process.env.MEDIA_BASE_PATH || "/home/vertex/media"; 
 
 const storage = (destination) =>
 
   multer.diskStorage({
     destination: function (req, file, cb) {
-        const folderPath = path.join(__dirname, `../../../../vertex/media/${destination}`);
+        const folderPath = path.join(MEDIA_BASE_PATH, `${destination}`);
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
