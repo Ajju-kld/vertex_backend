@@ -114,12 +114,12 @@ const uploadprofile = async (req, res) => {
             .status(400)
             .json({ success: false, message: "No file uploaded" });
         }
-        file_name = req.file.path.split("/").pop();
         resolve();
       });
-
+      
       // Extract the file name from the uploaded file path
-
+      
+      file_name = req.file.path.split("/").pop();
       console.log(file_name);
 
       // Return the file path
