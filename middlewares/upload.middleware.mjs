@@ -12,7 +12,7 @@ import {
 
 // Configure AWS SDK for DigitalOcean Spaces
 const clientConfig = {
-  endpoint: "https://vertex-bucket.blr1.digitaloceanspaces.com",
+  endpoint: "https://blr1.digitaloceanspaces.com",
   region: "blr1", // DigitalOcean Spaces does not require a specific region setting
   forcePathStyle: false,
   credentials: {
