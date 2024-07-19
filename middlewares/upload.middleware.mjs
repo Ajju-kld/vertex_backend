@@ -1,144 +1,126 @@
 import path from "path";
 import multer from "multer";
-const __dirname=path.resolve();
+import AWS from "aws-sdk";
 import fs from "fs";
-// create storage object for storing files
-const MEDIA_BASE_PATH = process.env.MEDIA_BASE_PATH || "/home/vertex/media"; 
 
-const storage = (destination) =>
+// Configure AWS SDK for DigitalOcean Spaces
+const spacesEndpoint = new AWS.Endpoint(
+  "https://vertex-bucket.blr1.digitaloceanspaces.com"
+);
+const s3 = new AWS.S3({
+  endpoint: spacesEndpoint,
+  accessKeyId: process.env.DO_SPACES_KEY,
+  secretAccessKey: process.env.DO_SPACES_SECRET,
+});
 
-  multer.diskStorage({
-    destination: function (req, file, cb) {
-        const folderPath = path.join(MEDIA_BASE_PATH, `${destination}`);
-        
-        // Create the destination folder if it doesn't exist
-        fs.mkdir(folderPath, { recursive: true }, function(err) {
-            if (err) {
-                // Handle error, e.g., folder already exists
-                console.error("Error creating destination folder:", err);
-                return cb(err);
-            }
-            cb(null, folderPath); // Destination folder
-        });
-    },
-    filename: function (req, file, cb) {
-      // Filename format: <user_name>-<timestamp>.<extension>
-      cb(
-        null,
-        req.user.username + "-" + Date.now() + path.extname(file.originalname)
-      );
-    },
-  });
+const BUCKET_NAME = process.env.DO_SPACES_BUCKET || "your-bucket-name";
 
-// Multer upload configuration
-const upload = (destination, fieldName) =>
-  multer({
-    storage: storage(destination),
-    limits: {
-      fileSize: 200 * 1024 * 1024, // Limit file size to 5MB
-    },
-    fileFilter: function (req, file, cb) {
-      // Check file type
-      if (file.mimetype.startsWith("image/")|| file.mimetype.startsWith("video/")) {
-        cb(null, true);
+// Multer configuration for temporary file storage
+const upload = multer({ dest: "temp/" });
+
+const uploadToSpaces = (file, destination) => {
+  return new Promise((resolve, reject) => {
+    const fileStream = fs.createReadStream(file.path);
+    const fileName = `${destination}/${path.basename(file.path)}`;
+
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: fileName,
+      Body: fileStream,
+      ACL: "public-read",
+      ContentType: file.mimetype,
+    };
+
+    s3.upload(params, (err, data) => {
+      // Delete the temporary file
+      fs.unlink(file.path, (unlinkErr) => {
+        if (unlinkErr)
+          console.error("Error deleting temporary file", unlinkErr);
+      });
+
+      if (err) {
+        console.error("Error uploading to DigitalOcean Spaces", err);
+        reject(err);
       } else {
-        cb(new Error("Only images are allowed"));
+        resolve(data.Location);
       }
-    },
-  }).single(fieldName);
+    });
+  });
+};
 
-
-const uploadPost = async (req,res) => {
+const uploadPost = async (req, res) => {
   try {
-    let file_name = "";
-
     const destination = `${req.user.username}/posts`;
     const fieldName = "post";
-      await new Promise((resolve, reject) => {
-    upload(destination, fieldName)(req,res,function (err) {
+
+    upload.single(fieldName)(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
-        // A multer error occurred (e.g., file size exceeded)
-        reject(err);
         return res.status(400).json({ success: false, message: err.message });
       } else if (err) {
-        // Other errors occurred
-        reject(err);
         return res.status(500).json({ success: false, message: err.message });
       }
-      // File uploaded successfully
+
       if (!req.file) {
         return res
           .status(400)
           .json({ success: false, message: "No file uploaded" });
       }
-      file_name = req.file.path.split("/").pop();
-      resolve();
-    });
 
-      // Extract the file name from the uploaded file path
-      
-      console.log(file_name);
-
-      // Return the file path
-      return file_name;
-      
+      try {
+        const fileUrl = await uploadToSpaces(req.file, destination);
+        return fileUrl;
+      } catch (error) {
+        console.error("Error in uploadPost:", error);
+        return res.status(500).json({ success: false, message: error.message });
+      }
     });
   } catch (error) {
-    console.log(error);
-    
+    console.error("Error in uploadPost:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-
-
-const uploadprofile = async (req, res) => {
+const uploadProfile = async (req, res) => {
   try {
-    console.log("Starting uploadprofile function");
-    let file_name = "";
-
+    console.log("Starting uploadProfile function");
     const destination = `${req.user.username}/profile`;
     const fieldName = "profile";
 
     console.log("Destination:", destination);
     console.log("Field name:", fieldName);
 
-    file_name = await new Promise((resolve, reject) => {
-      upload(destination, fieldName)(req, res, function (err) {
-        console.log("Inside upload callback");
-        if (err instanceof multer.MulterError) {
-          console.error("Multer error:", err);
-          reject(err);
-          return res.status(400).json({ success: false, message: err.message });
-        } else if (err) {
-          console.error("Other error:", err);
-          reject(err);
-          return res.status(500).json({ success: false, message: err.message });
-        }
+    upload.single(fieldName)(req, res, async function (err) {
+      console.log("Inside upload callback");
+      if (err instanceof multer.MulterError) {
+        console.error("Multer error:", err);
+        return res.status(400).json({ success: false, message: err.message });
+      } else if (err) {
+        console.error("Other error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+      }
 
-        console.log("req.file:", req.file);
+      console.log("req.file:", req.file);
 
-        if (!req.file) {
-          console.error("No file uploaded");
-          reject(new Error("No file uploaded"));
-          return res
-            .status(400)
-            .json({ success: false, message: "No file uploaded" });
-        }
+      if (!req.file) {
+        console.error("No file uploaded");
+        return res
+          .status(400)
+          .json({ success: false, message: "No file uploaded" });
+      }
 
-        const uploadedFileName = req.file.path.split("/").pop();
-        console.log("Uploaded file name:", uploadedFileName);
-        resolve(uploadedFileName);
-        file_name = uploadedFileName;
-      });
+      try {
+        const fileUrl = await uploadToSpaces(req.file, destination);
+        console.log("File URL after upload:", fileUrl);
+        return fileUrl;
+      } catch (error) {
+        console.error("Error in uploadProfile:", error);
+        return res.status(500).json({ success: false, message: error.message });
+      }
     });
-
-    console.log("File name after upload:", file_name);
-
-    // Return the file path
-    return file_name;
   } catch (error) {
-    console.error("Error in uploadprofile:", error);
+    console.error("Error in uploadProfile:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-export {uploadPost,uploadprofile}
+
+export { uploadPost, uploadProfile };
