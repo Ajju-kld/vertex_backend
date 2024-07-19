@@ -2,6 +2,7 @@ import path from "path";
 import multer from "multer";
 import AWS from "aws-sdk";
 import fs from "fs";
+import { DO_SPACES_BUCKET,DO_SPACES_KEY,DO_SPACES_SECRET } from "../utils/config.mjs";
 
 // Configure AWS SDK for DigitalOcean Spaces
 const spacesEndpoint = new AWS.Endpoint(
@@ -9,8 +10,8 @@ const spacesEndpoint = new AWS.Endpoint(
 );
 const s3 = new AWS.S3({
   endpoint: spacesEndpoint,
-  accessKeyId: process.env.DO_SPACES_KEY,
-  secretAccessKey: process.env.DO_SPACES_SECRET,
+  accessKeyId: DO_SPACES_KEY,
+  secretAccessKey: DO_SPACES_SECRET,
 });
 
 const BUCKET_NAME = process.env.DO_SPACES_BUCKET || "your-bucket-name";
