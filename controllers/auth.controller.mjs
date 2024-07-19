@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET } from "../utils/config.mjs";
 import{promisify} from "util";
 import fs from "fs";
-import { uploadPost, uploadprofile } from "../middlewares/upload.middleware.mjs";
+import {  uploadProfile } from "../middlewares/upload.middleware.mjs";
 const unlinkAsync = promisify(fs.unlink);
 
 const Register= async(req,res,next)=>{
@@ -80,19 +80,9 @@ try {
     if (!user) {
         return res.status(401).json({ message: "Unauthorized" });
     }
-  if (user.profile){
-    console.log(`Deleting previous profile image`, req.user.profile);
-    const path = req.user.profile.split("/").pop(); // Get the filename from the URL
-    const filePath = `/home/vertex/media/${user.username}/profile/${path}`;
-    console.log(`File path: ${filePath}`);
- 
-      if (fs.existsSync(filePath)) {
-        await unlinkAsync(filePath); // Asynchronously delete the file
-        console.log(`Previous profile image deleted successfully`);
-      } else {
-        console.log(`Previous profile image does not exist`);
-      }
-  }
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded",success: false });
+    }
 const profile=await uploadprofile(req,res);
 user.profile=profile;
 console.log(profile);

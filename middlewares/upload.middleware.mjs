@@ -89,6 +89,17 @@ const uploadProfile = async (req, res) => {
     console.log("Destination:", destination);
     console.log("Field name:", fieldName);
 
+    if(req.user.profile){
+      s3.deleteObject({
+        Bucket: BUCKET_NAME,
+        Key: req.user.profile
+      }, (err, data) => {
+        if (err) {
+          console.error("Error deleting old profile picture", err);
+        }});
+
+    }
+
     upload.single(fieldName)(req, res, async function (err) {
       console.log("Inside upload callback");
       if (err instanceof multer.MulterError) {
