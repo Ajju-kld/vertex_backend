@@ -93,46 +93,53 @@ const uploadPost = async (req,res) => {
 
 const uploadprofile = async (req, res) => {
   try {
+    console.log("Starting uploadprofile function");
     let file_name = "";
 
     const destination = `${req.user.username}/profile`;
     const fieldName = "profile";
-    await new Promise((resolve, reject) => {
+
+    console.log("Destination:", destination);
+    console.log("Field name:", fieldName);
+
+    file_name = await new Promise((resolve, reject) => {
       upload(destination, fieldName)(req, res, function (err) {
+        console.log("Inside upload callback");
         if (err instanceof multer.MulterError) {
-          console.log(err);
-          console.log('exceeed limit');
-          // A multer error occurred (e.g., file size exceeded)
+          console.error("Multer error:", err);
           reject(err);
           return res.status(400).json({ success: false, message: err.message });
         } else if (err) {
-          // Other errors occurred
+          console.error("Other error:", err);
           reject(err);
           return res.status(500).json({ success: false, message: err.message });
         }
-        // File uploaded successfully
+
+        console.log("req.file:", req.file);
+
         if (!req.file) {
+          console.error("No file uploaded");
+          reject(new Error("No file uploaded"));
           return res
             .status(400)
             .json({ success: false, message: "No file uploaded" });
         }
-          file_name = req.file.path.split("/").pop();
-        resolve(file_name);
-      });
-      
-      // Extract the file name from the uploaded file path
-      
-    
-      console.log(file_name);
 
-      // Return the file path
-      return file_name;
+        const uploadedFileName = req.file.path.split("/").pop();
+        console.log("Uploaded file name:", uploadedFileName);
+        resolve(uploadedFileName);
+      });
     });
+
+    console.log("File name after upload:", file_name);
+
+    // Return the file path
+    return res.status(200).json({ success: true, file_name: file_name });
   } catch (error) {
-    console.log(error);
+    console.error("Error in uploadprofile:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 
 export {uploadPost,uploadprofile}
