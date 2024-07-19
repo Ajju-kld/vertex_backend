@@ -100,6 +100,8 @@ const uploadprofile = async (req, res) => {
     await new Promise((resolve, reject) => {
       upload(destination, fieldName)(req, res, function (err) {
         if (err instanceof multer.MulterError) {
+          console.log(err);
+          console.log('exceeed limit');
           // A multer error occurred (e.g., file size exceeded)
           reject(err);
           return res.status(400).json({ success: false, message: err.message });
@@ -114,12 +116,13 @@ const uploadprofile = async (req, res) => {
             .status(400)
             .json({ success: false, message: "No file uploaded" });
         }
-        resolve();
+          file_name = req.file.path.split("/").pop();
+        resolve(file_name);
       });
       
       // Extract the file name from the uploaded file path
       
-      file_name = req.file.path.split("/").pop();
+    
       console.log(file_name);
 
       // Return the file path
