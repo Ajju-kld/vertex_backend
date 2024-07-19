@@ -84,6 +84,7 @@ try {
     console.log(`Deleting previous profile image`, req.user.profile);
     const path = req.user.profile.split("/").pop(); // Get the filename from the URL
     const filePath = `/home/vertex/media/${user.username}/${path}`;
+    console.log(`File path: ${filePath}`);
  
       if (fs.existsSync(filePath)) {
         await unlinkAsync(filePath); // Asynchronously delete the file
