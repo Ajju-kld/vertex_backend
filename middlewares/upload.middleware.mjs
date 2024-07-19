@@ -134,7 +134,7 @@ const uploadprofile = async (req, res) => {
     console.log("File name after upload:", file_name);
 
     // Return the file path
-    return res.status(200).json({ success: true, file_name: file_name });
+    return file_name;
   } catch (error) {
     console.error("Error in uploadprofile:", error);
     return res.status(500).json({ success: false, message: error.message });
