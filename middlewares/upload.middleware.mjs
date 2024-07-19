@@ -1,6 +1,6 @@
 import path from "path";
 import multer from "multer";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import fs from "fs";
 import {
   DO_SPACES_BUCKET,
@@ -97,17 +97,14 @@ const uploadProfile = async (req, res) => {
     console.log("Field name:", fieldName);
 
     if (req.user.profile) {
-      s3Client.deleteObject(
-        {
-          Bucket: BUCKET_NAME,
-          Key: req.user.profile,
-        },
-        (err, data) => {
-          if (err) {
-            console.error("Error deleting old profile picture", err);
-          }
-        }
-      );
+      // Delete the existing profile image
+      const deleteParams = {
+        Bucket: DO_SPACES_BUCKET,
+        Key: req.user.profile,
+      };
+      s3Client.send(
+       new DeleteObjectCommand(deleteParams)
+      )
     }
 
     upload.single(fieldName)(req, res, async function (err) {
