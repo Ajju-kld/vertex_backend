@@ -12,6 +12,7 @@ const storage = (destination) =>
           __dirname,
           `../../../vertex/media/${destination}`
         );
+        console.log("Destination folder path:", folderPath);
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
