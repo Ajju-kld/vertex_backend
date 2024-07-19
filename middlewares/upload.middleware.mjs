@@ -10,7 +10,7 @@ const storage = (destination) =>
     destination: function (req, file, cb) {
         const folderPath = path.join(
           __dirname,
-          `../../vertex/media/${destination}`
+          `../../../vertex/media/${destination}`
         );
         
         // Create the destination folder if it doesn't exist
