@@ -8,8 +8,7 @@ import {
   DO_SPACES_SECRET,
 } from "../utils/config.mjs";
 
-console.log("DO_SPACES_BUCKET:", DO_SPACES_BUCKET);
-console.log("DO_SPACES_KEY:", DO_SPACES_KEY);
+
 
 // Configure AWS SDK for DigitalOcean Spaces
 const clientConfig = {
@@ -98,7 +97,7 @@ const uploadProfile = async (req, res) => {
     console.log("Field name:", fieldName);
 
     if (req.user.profile) {
-      s3.deleteObject(
+      s3Client.deleteObject(
         {
           Bucket: BUCKET_NAME,
           Key: req.user.profile,
