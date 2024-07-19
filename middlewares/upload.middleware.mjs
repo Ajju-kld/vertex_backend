@@ -8,7 +8,7 @@ const storage = (destination) =>
 
   multer.diskStorage({
     destination: function (req, file, cb) {
-        const folderPath = path.join(__dirname, `../../vertex/media/${destination}`);
+        const folderPath = path.join(__dirname, `../../../../vertex/media/${destination}`);
         
         // Create the destination folder if it doesn't exist
         fs.mkdir(folderPath, { recursive: true }, function(err) {
@@ -90,31 +90,30 @@ const uploadPost = async (req,res) => {
 
 
 
-
 const uploadprofile = async (req, res) => {
   try {
+    console.log("Starting uploadprofile function");
     let file_name = "";
 
     const destination = `${req.user.username}/profile`;
     const fieldName = "profile";
-    await new Promise((resolve, reject) => {
+
+    console.log("Destination:", destination);
+    console.log("Field name:", fieldName);
+
+    file_name = await new Promise((resolve, reject) => {
       upload(destination, fieldName)(req, res, function (err) {
+        console.log("Inside upload callback");
         if (err instanceof multer.MulterError) {
-          // A multer error occurred (e.g., file size exceeded)
+          console.error("Multer error:", err);
           reject(err);
           return res.status(400).json({ success: false, message: err.message });
         } else if (err) {
-          // Other errors occurred
+          console.error("Other error:", err);
           reject(err);
           return res.status(500).json({ success: false, message: err.message });
         }
-        // File uploaded successfully
-        if (!req.file) {
-          return res
-            .status(400)
-            .json({ success: false, message: "No file uploaded" });
-        }
-   
+
         console.log("req.file:", req.file);
 
         if (!req.file) {
@@ -124,24 +123,20 @@ const uploadprofile = async (req, res) => {
             .status(400)
             .json({ success: false, message: "No file uploaded" });
         }
-        console.log(req.file.path);
+
         const uploadedFileName = req.file.path.split("/").pop();
         console.log("Uploaded file name:", uploadedFileName);
         resolve(uploadedFileName);
       });
-
-      // Extract the file name from the uploaded file path
-
-      console.log(file_name);
-
-      // Return the file path
-      return file_name;
     });
+
+    console.log("File name after upload:", file_name);
+
+    // Return the file path
+    return res.status(200).json({ success: true, file_name: file_name });
   } catch (error) {
-    console.log(error);
+    console.error("Error in uploadprofile:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
-
 export {uploadPost,uploadprofile}
