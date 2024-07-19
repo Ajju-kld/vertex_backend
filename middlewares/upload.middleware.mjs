@@ -18,13 +18,14 @@ const clientConfig = {
   credentials: {
     accessKeyId: DO_SPACES_KEY,
     secretAccessKey: DO_SPACES_SECRET,
+    
   },
 };
 
 const s3Client = new S3Client(clientConfig);
 
-const BUCKET_NAME = process.env.DO_SPACES_BUCKET || "your-bucket-name";
-
+console.log("S3 Client:", s3Client);
+console.log("DO_SPACES_BUCKET:", DO_SPACES_BUCKET);
 // Multer configuration for temporary file storage
 const upload = multer({ dest: "temp/" });
 const uploadToSpaces = async (file, destination) => {
