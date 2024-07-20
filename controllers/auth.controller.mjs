@@ -12,47 +12,36 @@ import {
 const Register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
+
+    // Validation checks
     if (!email || !password || !username) {
-      if (req.file) await req.fileCleanup();
-      return res
-        .status(400)
-        .json({
-          message: "Email and password  and username are required",
-          success: false,
-        });
+      throw {
+        status: 400,
+        message: "Email, password, and username are required",
+      };
     }
+
     if (password.length < 6) {
-      if (req.file) await req.fileCleanup();
-      return res
-        .status(400)
-        .json({
-          message: "Password must be at least 6 characters",
-          success: false,
-        });
+      throw { status: 400, message: "Password must be at least 6 characters" };
     }
-    if (await User.findOne({ email })) {
-      if (req.file) await req.fileCleanup();
-      console.log("Email already exists");
-      return res
-        .status(400)
-        .json({ message: "Email already exists", success: false });
+
+    // Check if email or username already exists
+    const existingUserWithEmail = await User.findOne({ email });
+    if (existingUserWithEmail) {
+      throw { status: 400, message: "Email already exists" };
     }
-    if (await User.findOne({ username })) {
-      if (req.file) await req.fileCleanup();
-      console.log("Username already exists");
-      return res
-        .status(400)
-        .json({ message: "Username already exists", success: false });
+
+    const existingUserWithUsername = await User.findOne({ username });
+    if (existingUserWithUsername) {
+      throw { status: 400, message: "Username already exists" };
     }
-    let profileUrl;
-    if (req.file) {
-      profileUrl = await uploadToSpaces({
-        file: req.file,
-        destination: username + "/profile",
-      });
-    } else
-      profileUrl =
-        "https://vertex-bucket.blr1.cdn.digitaloceanspaces.com/person.png";
+
+    let profileUrl = req.file
+      ? await uploadToSpaces({
+          file: req.file,
+          destination: `${username}/profile`,
+        })
+      : "https://vertex-bucket.blr1.cdn.digitaloceanspaces.com/person.png";
 
     const hash = await bcrypt.hash(req.body.password, 10);
     const user = new User({
