@@ -5,11 +5,9 @@ import { SECRET } from "../utils/config.mjs";
 import { promisify } from "util";
 import fs from "fs";
 import {
-  uploadProfile as handleProfileUpload,
-  upload,
   uploadToSpaces,
 } from "../middlewares/upload.middleware.mjs";
-const unlinkAsync = promisify(fs.unlink);
+
 
 const Register = async (req, res, next) => {
   try {
