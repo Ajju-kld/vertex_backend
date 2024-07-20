@@ -31,7 +31,7 @@ const s3Client = new S3Client(clientConfig);
 
 // Multer configuration for temporary file storage
 const upload = multer({ dest: "temp/" });
-const uploadToSpaces = async (file, destination) => {
+const uploadToSpaces = async ({ file, destination }) => {
   try {
     const fileStream = fs.createReadStream(file.path);
     const fileName = `${destination}/${file.filename}${path.extname(
@@ -127,7 +127,7 @@ const uploadProfile = async (req, res) => {
       }
 
       try {
-        const fileUrl = await uploadToSpaces(req.file, destination);
+        const fileUrl = await uploadToSpaces({file: req.file, destination: destination});
         console.log("File URL after upload:", fileUrl);
         console.log("returned back to uploadProfile function");
         req.user.profile = fileUrl;

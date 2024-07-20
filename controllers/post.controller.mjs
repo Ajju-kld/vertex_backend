@@ -6,143 +6,158 @@ import User from "../models/user.model.mjs";
 // Define your post controller function
 
 const uploadPost = async (req, res, next) => {
-  try{
+  try {
+    const destination=`${req.user.username}/post`;
     if (!req.file) {
-        return res.status(400).json({ message: "Post content is required" });
+      return res.status(400).json({ message: "Post content is required" });
     }
-    const {caption ,createdAt }=req.body;
+    const { caption, createdAt } = req.body;
 
-    const url=await uploadToSpaces(req.file);
-    console.log("url:",url);
+    const url = await uploadToSpaces({
+        file: req.file,
+        destination: destination,
+    });
+    // type of post
+    const mimetype = req.file.mimetype;
+
+    // Determine the type of file
+    let fileType;
+    if (mimetype.startsWith("image/")) {
+      fileType = "image";
+    } else if (mimetype.startsWith("video/")) {
+      fileType = "video";
+    } else {
+      return res.status(400).json({ message: "Invalid file type" });
+    }
+
+    console.log("url:", url);
 
     const post = new Post({
-        user: req.user._id,
-        caption,
-        post_url: url,
-        createdAt,
+      user: req.user._id,
+      caption,
+      post_url: url,
+      createdAt,
+      type: fileType,
     });
     await post.save();
     res.status(200).json({ message: "Post uploaded successfully", post });
+  } catch (error) {
+    next(error);
   }
-    catch(error){
-        next(error);
-    }
 };
 
-
-
-
-
-
 const likePost = async (req, res, next) => {
-    try {
-        const {id} = req.params;
-        const user = req.user;
-        if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-        if (!post) {
-            return res.status(404).json({ message: "Post id should be provided" });
-        }
-        const post = await Post.findById(id);
-const index = post.likes.findIndex(like => like === user.id);
-if (index !== -1) {
-    post.likes.splice(index, 1);
-}
-        await post.save();
-        res.status(200).json({ message: "Post liked successfully", post });
-    } catch (error) {
-        next(error);
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+    if (!post) {
+      return res.status(404).json({ message: "Post id should be provided" });
+    }
+    const post = await Post.findById(id);
+    const index = post.likes.findIndex((like) => like === user.id);
+    if (index !== -1) {
+      post.likes.splice(index, 1);
+    }
+    await post.save();
+    res.status(200).json({ message: "Post liked successfully", post });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // commented on a post
 const commentPost = async (req, res, next) => {
-    try {
-        const {id} = req.params;
-        const data = req.body;
-        const user = req.user;
-        const post= await Post.findById(id);
-        if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-        if (!post) {
-            return res.status(404).json({ message: "invalid post_id" });
-        }
-        if (!data.comment) {
-            return res.status(400).json({ message: "Comment is required" });
-        }
-        const comment = new Comment({
-            user: user._id,
-            post: post._id,
-            comment: data.comment,
-        });
-        res.status(200).json({ message: "Comment added successfully", post });
-    } catch (error) {
-        next(error);
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const user = req.user;
+    const post = await Post.findById(id);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
+    if (!post) {
+      return res.status(404).json({ message: "invalid post_id" });
+    }
+    if (!data.comment) {
+      return res.status(400).json({ message: "Comment is required" });
+    }
+    const comment = new Comment({
+      user: user._id,
+      post: post._id,
+      comment: data.comment,
+    });
+    res.status(200).json({ message: "Comment added successfully", post });
+  } catch (error) {
+    next(error);
+  }
 };
 
-
 // like the comment on a post
-const likedComment=async (req,res,next)=>{
-    try {
-        const {id}=req.params;
-        const user=req.user;
-        const comment=await Comment.findById(id);
-        if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-        if (!comment) {
-            return res.status(404).json({ message: "invalid comment_id" });
-        }
-        const index = comment.likes.findIndex(like => like === user._id);
-        if (index !== -1) {
-          comment.likes.splice(index, 1);
-        }
-        await comment.save();
-        res.status(200).json({ message: "Comment liked successfully", comment });
-
-    } catch (error) {
-        
+const likedComment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    const comment = await Comment.findById(id);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-}
+    if (!comment) {
+      return res.status(404).json({ message: "invalid comment_id" });
+    }
+    const index = comment.likes.findIndex((like) => like === user._id);
+    if (index !== -1) {
+      comment.likes.splice(index, 1);
+    }
+    await comment.save();
+    res.status(200).json({ message: "Comment liked successfully", comment });
+  } catch (error) {}
+};
 
 // delete the post
 const deletePost = async (req, res, next) => {
-    try {
-        const {id} = req.params;
-        const post = await Post.findById(id);
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-        if (post.user.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
-    
-        await Post.findByIdAndDelete(id);
-        res.status(200).json({ message: "Post deleted successfully" });
-    } catch (error) {
-        next(error);
+  try {
+    const { id } = req.params;
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
-};
+    if (post.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    await Post.findByIdAndDelete(id);
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const userPosts = async (req, res, next) => {
   try {
     const username = req.params.username;
-    const user = await User.findOne({ username: username }).select("-passwordHash");
+    const user = await User.findOne({ username: username }).select(
+      "-passwordHash"
+    );
     if (!user) {
-        return res.status(404).json({ message: "User not found" ,success:false});
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
     }
-    if(user.private){
-        return res.status(401).json({ message: "User is private",success:false });
+    if (user.private) {
+      return res
+        .status(401)
+        .json({ message: "User is private", success: false });
     }
-    const posts = await Post.find({ user: user._id}).populate("user","-passwordHash -followers -following -_id -email").sort("-createdAt");
+    const posts = await Post.find({ user: user._id })
+      .populate("user", "-passwordHash -followers -following -_id -email")
+      .sort("-createdAt");
     // ALSO ADD COMMENTS WITH IT
     for (const post of posts) {
-        post.commentCount = await Comment.countDocuments({ post: post._id });
-    post.likesCount = post.likes.length;
+      post.commentCount = await Comment.countDocuments({ post: post._id });
+      post.likesCount = post.likes.length;
     }
 
     res.status(200).json({ message: "Posts fetched successfully", posts });
@@ -151,30 +166,27 @@ const userPosts = async (req, res, next) => {
   }
 };
 
-
 const getPostbyId = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const post = await Post.findById(id);
-        post.commentCount = await Comment.countDocuments({ post: post._id });
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-        res.status(200).json({ message: "Post fetched successfully", post });
-    } catch (error) {
-        next(error);
+  try {
+    const { id } = req.params;
+    const post = await Post.findById(id);
+    post.commentCount = await Comment.countDocuments({ post: post._id });
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
-}
+    res.status(200).json({ message: "Post fetched successfully", post });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Export the post controller function
 export {
-   
-    likePost,
-deletePost,
-    uploadPost,
-
-    commentPost,
-    userPosts,
-    likedComment,
-    getPostbyId
+  likePost,
+  deletePost,
+  uploadPost,
+  commentPost,
+  userPosts,
+  likedComment,
+  getPostbyId,
 };
