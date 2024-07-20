@@ -1,57 +1,37 @@
 // Import any necessary modules or dependencies
-import { uploadPost } from "../middlewares/upload.middleware.mjs";
+import { upload } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
 // Define your post controller function
-const uploadPostContent =async (req, res,next) => {
-    // Implement the logic to handle the post upload here
-   try {
-     
-      
-       const user=req.user;
-       const post= await Post.findById(req.params.id);
-       
-           if (!post) {
-               return res.status(404).json({ message: "Post not found" });
-           }
-           console.log(post);
-           console.log(user._id);
-    if (!post.user || !user._id || post.user.toString() !== user._id.toString()) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    req.post = post;
-    return await uploadPost(req,res);
-     // Return a response to the client
 
-   } catch (error) {
-    next(error);
-   }
-};
-const uploadPostDetails = async (req, res,next) => {
-try {
-    const data=req.body;
-    const user=req.user;
-    data.user=user._id;
+const uploadPost = async (req, res, next) => {
+  try{
+    if (!req.file) {
+        return res.status(400).json({ message: "Post content is required" });
+    }
+    const {caption ,createdAt }=req.body;
 
-    if (!user) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-    if(!data.user){
-        return res.status(400).json({
-            message:"User is required"
-        });
-    }
-    
-    const post = new Post(data);
+    const url=uploadToS3(req.file);
+
+    const post = new Post({
+        user: req.user._id,
+        caption,
+        post_url: url,
+        createdAt,
+    });
     await post.save();
-    res.status(201).json({ message: "Post uploaded successfully", post });
+    res.status(200).json({ message: "Post uploaded successfully", post });
+  }
+    catch(error){
+        next(error);
+    }
+};
 
-    
-} catch (error) {
-    next(error);
-}    
-}
+
+
+
+
 
 const likePost = async (req, res, next) => {
     try {
@@ -187,10 +167,11 @@ const getPostbyId = async (req, res, next) => {
 
 // Export the post controller function
 export {
-    uploadPostContent ,
+   
     likePost,
 deletePost,
-uploadPostDetails,
+    uploadPost,
+
     commentPost,
     userPosts,
     likedComment,

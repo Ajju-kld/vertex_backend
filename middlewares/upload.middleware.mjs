@@ -61,81 +61,20 @@ const uploadToSpaces = async (file, destination) => {
     );
     const urlParser = new URL(signedUrl);
     const url = `${urlParser.protocol}//${urlParser.hostname}${urlParser.pathname}`;
-
+    console.log("Uploaded to DigitalOcean Spaces:", data);
+    return url;
+  } catch (error) {
+    console.error("Error uploading to DigitalOcean Spaces", error);
+    throw error;
+  } finally {
     // Delete the temporary file
     fs.unlink(file.path, (unlinkErr) => {
       if (unlinkErr) {
         console.error("Error deleting temporary file", unlinkErr);
       }
     });
-
-    return url;
-  } catch (error) {
-    console.error("Error uploading to DigitalOcean Spaces", error);
-    throw error;
   }
 };
-
-const uploadPost = async (req, res) => {
-  try {
-    console.log("Starting uploadPost function");
-    const destination = `${req.user.username}/posts`;
-    const fieldName = "post";
-
-    console.log("Destination:", destination);
-    console.log("Field name:", fieldName);
-
-    upload.single(fieldName)(req, res, async function (err) {
-      console.log("Inside upload callback");
-      if (err instanceof multer.MulterError) {
-        console.error("Multer error:", err);
-        return res.status(400).json({ success: false, message: err.message });
-      } else if (err) {
-        console.error("Other error:", err);
-        return res.status(500).json({ success: false, message: err.message });
-      }
-
-      console.log("req.file:", req.file);
-
-      if (!req.file) {
-        console.error("No file uploaded");
-        return res
-          .status(400)
-          .json({ success: false, message: "No file uploaded" });
-      }
-
-      try {
-        const mimetype = req.file.mimetype;
-
-        // Determine the type of file
-        let fileType;
-        if (mimetype.startsWith("image/")) {
-          fileType = "image";
-        } else if (mimetype.startsWith("video/")) {
-          fileType = "video";
-        } else {
-          throw new Error("Invalid file type");
-        }
-
-        const fileUrl = await uploadToSpaces(req.file, destination);
-        console.log("File URL after upload:", fileUrl);
-        console.log("returned back to uploadPost function");
-        console.log("req.post:", req.post);
-        req.post.post_url = fileUrl;
-        req.post.type = fileType;
-        await req.post.save();
-        return res.status(200).json({ success: true, profile: fileUrl });
-      } catch (error) {
-        console.error("Error in uploadProfile:", error);
-        return res.status(500).json({ success: false, message: error.message });
-      }
-    });
-  } catch (error) {
-    console.error("Error in uploadProfile:", error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
 const uploadProfile = async (req, res) => {
   try {
     console.log("Starting uploadProfile function");
@@ -205,4 +144,4 @@ const uploadProfile = async (req, res) => {
   }
 };
 
-export { uploadPost, uploadProfile };
+export { upload, uploadProfile ,uploadToSpaces};
