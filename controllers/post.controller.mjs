@@ -1,5 +1,5 @@
 // Import any necessary modules or dependencies
-import { uploadToS3 } from "../middlewares/upload.middleware.mjs";
+import { uploadToSpaces } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
@@ -12,7 +12,7 @@ const uploadPost = async (req, res, next) => {
     }
     const {caption ,createdAt }=req.body;
 
-    const url=uploadToS3(req.file);
+    const url=uploadToSpaces(req.file);
 
     const post = new Post({
         user: req.user._id,
