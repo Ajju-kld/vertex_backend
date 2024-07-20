@@ -46,7 +46,11 @@ else profileUrl = "https://vertex-bucket.blr1.cdn.digitaloceanspaces.com/person.
     const token = jwt.sign(tokenPairs, SECRET, {
         expiresIn: "12d"
     });
-    res.status(201).json({ message: "User created", token ,success: true });
+    res.status(201).json({ message: "User created", token ,success: true ,user:{
+        email: user.email,
+    username: user.username,
+    profile: user.profile,
+    }});
 
 
 } catch (error) {
