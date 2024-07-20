@@ -28,7 +28,7 @@ if (await User.findOne({ username })) {
 }
 let profileUrl;
 if(req.file)
-    {upload.single("profile");
+    {
         profileUrl=await uploadToSpaces({file:req.file,destination:username+"/profile"});
 
     }
