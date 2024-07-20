@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { SECRET } from "../utils/config.mjs";
 import{promisify} from "util";
 import fs from "fs";
-import {  uploadProfile as handleProfileUpload } from "../middlewares/upload.middleware.mjs";
+import {  uploadProfile as handleProfileUpload, upload, uploadToSpaces } from "../middlewares/upload.middleware.mjs";
 const unlinkAsync = promisify(fs.unlink);
 
 const Register= async(req,res,next)=>{
@@ -26,14 +26,20 @@ if (await User.findOne({ username })) {
     return res.status(400).json({ message: "Username already exists",success: false });
     
 }
+let profileUrl;
+if(req.file)
+    {upload.single("profile");
+        profileUrl=await uploadToSpaces({file:req.file,destination:username+"/profile"});
 
+    }
+else profileUrl = "https://vertex-bucket.blr1.cdn.digitaloceanspaces.com/person.png";
 
     const hash= await bcrypt.hash(req.body.password,10);
-
     const user = new User({
         email: email,
         password:hash,
-        username: username
+        username: username,
+        profile: profileUrl
     });
     await user.save();
     const tokenPairs = {userId:user._id, email,username}
