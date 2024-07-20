@@ -74,74 +74,30 @@ const uploadToSpaces = async ({ file, destination }) => {
       }
     });
   }
-};
-const uploadProfile = async (req, res) => {
-  try {
-    console.log("Starting uploadProfile function");
-    const destination = `${req.user.username}/profile`;
-    const fieldName = "profile";
+}
 
-    console.log("Destination:", destination);
-    console.log("Field name:", fieldName);
 
-    if (req.user.profile) {
-      console.log("Profile image exists:", req.user.profile);
-      const url = new URL(req.user.profile);
-      const key = url.pathname.substring(1);
-      console.log("Key:", key);
-      // Delete the existing profile image
-      const deleteParams = {
-        Bucket: DO_SPACES_BUCKET,
-        Key: key,
-      };
-      await s3Client.send(
-        new DeleteObjectCommand(deleteParams),
-        (err, data) => {
-          if (err) {
-            console.error("Error deleting profile image", err);
-            throw err;
+const handleFileUpload = (fieldName) => {
+  return (req, res, next) => {
+    upload.single(fieldName)(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      if (req.file) {
+        req.fileCleanup = async () => {
+          try {
+            await fs.unlink(req.file.path);
+            console.log(`Cleaned up file: ${req.file.path}`);
+          } catch (unlinkError) {
+            console.error("Error deleting file:", unlinkError);
           }
-          console.log("Deleted profile image:", data);
-        }
-      );
-    }
-
-    upload.single(fieldName)(req, res, async function (err) {
-      console.log("Inside upload callback");
-      if (err instanceof multer.MulterError) {
-        console.error("Multer error:", err);
-        return res.status(400).json({ success: false, message: err.message });
-      } else if (err) {
-        console.error("Other error:", err);
-        return res.status(500).json({ success: false, message: err.message });
-      }
-      const  {name}=req.body;
-      console.log("name:",name);
-      console.log("req.file:", req.file);
-
-      if (!req.file) {
-        console.error("No file uploaded");
-        return res
-          .status(400)
-          .json({ success: false, message: "No file uploaded" });
+        };
       }
 
-      try {
-        const fileUrl = await uploadToSpaces({file: req.file, destination: destination});
-        console.log("File URL after upload:", fileUrl);
-        console.log("returned back to uploadProfile function");
-        req.user.profile = fileUrl;
-        await req.user.save();
-        return res.status(200).json({ success: true, profile: fileUrl });
-      } catch (error) {
-        console.error("Error in uploadProfile:", error);
-        return res.status(500).json({ success: false, message: error.message });
-      }
+      next();
     });
-  } catch (error) {
-    console.error("Error in uploadProfile:", error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
+  };
 };
 
-export { upload, uploadProfile ,uploadToSpaces};
+export { upload ,uploadToSpaces,handleFileUpload};

@@ -2,12 +2,12 @@ import { Router } from "express";
 
 import { verifyToken } from "../middlewares/auth.middleware.mjs";
 import { deletePost, getPostbyId, likePost, uploadPost } from "../controllers/post.controller.mjs";
-import { upload } from "../middlewares/upload.middleware.mjs";
+import { handleFileUpload} from "../middlewares/upload.middleware.mjs";
 
 
 const router = Router();
 
-router.post('/upload',verifyToken,upload.single('post'),uploadPost);
+router.post('/upload',verifyToken,handleFileUpload,uploadPost);
 router.get("/:id",verifyToken,getPostbyId)
 router.put('/like/:id',verifyToken,likePost);
 router.delete('/like/:id',verifyToken,deletePost);
