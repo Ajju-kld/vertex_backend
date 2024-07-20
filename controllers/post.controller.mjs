@@ -12,7 +12,8 @@ const uploadPost = async (req, res, next) => {
     }
     const {caption ,createdAt }=req.body;
 
-    const url=uploadToSpaces(req.file);
+    const url=await uploadToSpaces(req.file);
+    console.log("url:",url);
 
     const post = new Post({
         user: req.user._id,
