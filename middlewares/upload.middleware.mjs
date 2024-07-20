@@ -1,6 +1,10 @@
 import path from "path";
 import multer from "multer";
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import fs from "fs";
@@ -11,8 +15,6 @@ import {
   DO_REGION,
   DO_ENDPOINT,
 } from "../utils/config.mjs";
-
-
 
 // Configure AWS SDK for DigitalOcean Spaces
 const clientConfig = {
@@ -27,14 +29,14 @@ const clientConfig = {
 
 const s3Client = new S3Client(clientConfig);
 
-
-
 // Multer configuration for temporary file storage
 const upload = multer({ dest: "temp/" });
 const uploadToSpaces = async (file, destination) => {
   try {
     const fileStream = fs.createReadStream(file.path);
-    const fileName = `${destination}/${file.filename}${path.extname(file.originalname)}`;
+    const fileName = `${destination}/${file.filename}${path.extname(
+      file.originalname
+    )}`;
 
     const uploadParams = {
       Bucket: DO_SPACES_BUCKET,
@@ -45,18 +47,20 @@ const uploadToSpaces = async (file, destination) => {
     };
 
     const data = await s3Client.send(new PutObjectCommand(uploadParams));
-      const signedUrl= await getSignedUrl(s3Client, new PutObjectCommand(uploadParams), { expiresIn: -1 },(err, url) => {
+    const signedUrl = await getSignedUrl(
+      s3Client,
+      new PutObjectCommand(uploadParams),
+      { expiresIn: -1 },
+      (err, url) => {
         if (err) {
           console.error("Error getting signed URL", err);
           throw err;
         }
         console.log("Signed URL:", url);
-
-      });
-      const urlParser = new URL(signedUrl);
-      const url = `${urlParser.protocol}//${urlParser.hostname}${urlParser.pathname}`;
-
-
+      }
+    );
+    const urlParser = new URL(signedUrl);
+    const url = `${urlParser.protocol}//${urlParser.hostname}${urlParser.pathname}`;
 
     // Delete the temporary file
     fs.unlink(file.path, (unlinkErr) => {
@@ -81,8 +85,6 @@ const uploadPost = async (req, res) => {
     console.log("Destination:", destination);
     console.log("Field name:", fieldName);
 
-   
-
     upload.single(fieldName)(req, res, async function (err) {
       console.log("Inside upload callback");
       if (err instanceof multer.MulterError) {
@@ -103,19 +105,17 @@ const uploadPost = async (req, res) => {
       }
 
       try {
-const mimetype = req.file.mimetype;
+        const mimetype = req.file.mimetype;
 
-// Determine the type of file
-let fileType;
-if (mimetype.startsWith("image/")) {
-  fileType = "image";
-} else if (mimetype.startsWith("video/")) {
-  fileType = "video";
-} else {
-  throw new Error("Invalid file type");
-}
-
-
+        // Determine the type of file
+        let fileType;
+        if (mimetype.startsWith("image/")) {
+          fileType = "image";
+        } else if (mimetype.startsWith("video/")) {
+          fileType = "video";
+        } else {
+          throw new Error("Invalid file type");
+        }
 
         const fileUrl = await uploadToSpaces(req.file, destination);
         console.log("File URL after upload:", fileUrl);
@@ -147,26 +147,24 @@ const uploadProfile = async (req, res) => {
 
     if (req.user.profile) {
       console.log("Profile image exists:", req.user.profile);
-     const url = new URL(req.user.profile);
-     const key= url.pathname.substring(1);
-     console.log("Key:", key);
+      const url = new URL(req.user.profile);
+      const key = url.pathname.substring(1);
+      console.log("Key:", key);
       // Delete the existing profile image
       const deleteParams = {
         Bucket: DO_SPACES_BUCKET,
         Key: key,
-
       };
-     await  s3Client.send(
-       new DeleteObjectCommand(deleteParams),
-       (err, data) => {
+      await s3Client.send(
+        new DeleteObjectCommand(deleteParams),
+        (err, data) => {
           if (err) {
             console.error("Error deleting profile image", err);
             throw err;
           }
           console.log("Deleted profile image:", data);
-
-       }
-      )
+        }
+      );
     }
 
     upload.single(fieldName)(req, res, async function (err) {
@@ -178,7 +176,8 @@ const uploadProfile = async (req, res) => {
         console.error("Other error:", err);
         return res.status(500).json({ success: false, message: err.message });
       }
-
+      const  {name}=req.body;
+      console.log("name:",name);
       console.log("req.file:", req.file);
 
       if (!req.file) {
