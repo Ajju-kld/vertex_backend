@@ -1,5 +1,5 @@
 // Import any necessary modules or dependencies
-import { upload } from "../middlewares/upload.middleware.mjs";
+import { uploadToS3 } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
