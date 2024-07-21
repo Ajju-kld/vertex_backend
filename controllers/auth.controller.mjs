@@ -55,6 +55,7 @@ const Register = async (req, res, next) => {
     const token = jwt.sign(tokenPairs, SECRET, {
       expiresIn: "12d",
     });
+    await req.fileCleanup();
     res.status(201).json({
       message: "User created",
       token,

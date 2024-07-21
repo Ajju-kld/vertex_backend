@@ -66,14 +66,7 @@ const uploadToSpaces = async ({ file, destination }) => {
   } catch (error) {
     console.error("Error uploading to DigitalOcean Spaces", error);
     throw error;
-  } finally {
-    // Delete the temporary file
-    fs.unlink(file.path, (unlinkErr) => {
-      if (unlinkErr) {
-        console.error("Error deleting temporary file", unlinkErr);
-      }
-    });
-  }
+  } 
 }
 
 
