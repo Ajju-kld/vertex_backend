@@ -8,6 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import fs from "fs";
+import ds from "fs/promises";
 import {
   DO_SPACES_BUCKET,
   DO_SPACES_KEY,
@@ -80,7 +81,7 @@ const handleFileUpload = (fieldName) => {
       if (req.file) {
         req.fileCleanup = async () => {
           try {
-            await fs.unlink(req.file.path);
+            await ds.unlink(req.file.path);
             console.log(`Cleaned up file: ${req.file.path}`);
           } catch (unlinkError) {
             console.error("Error deleting file:", unlinkError);
