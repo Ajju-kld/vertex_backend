@@ -3,6 +3,7 @@ import { uploadToSpaces } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
+const { Worker } ='worker_threads';
 // Define your post controller function
 
 const uploadPost = async (req, res, next) => {
@@ -46,6 +47,7 @@ const uploadPost = async (req, res, next) => {
   }
 };
 
+// like the post
 const likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -53,10 +55,35 @@ const likePost = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post id should be provided" });
     }
+    post.likes.push(user._id);
+    await post.save();
+    res.status(200).json({ message: "Post liked successfully", post });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+//like a post
+
+
+
+
+const unlikePost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post id should be provided" });
+    }
     const index = post.likes.findIndex((like) => like === user.id);
     if (index !== -1) {
       post.likes.splice(index, 1);
@@ -88,15 +115,42 @@ const commentPost = async (req, res, next) => {
       user: user._id,
       post: post._id,
       comment: data.comment,
+      createdAt: data.createdAt,
     });
+    await comment.save();
     res.status(200).json({ message: "Comment added successfully", post });
   } catch (error) {
     next(error);
   }
 };
 
+//get all comment relateed to a post
+const getCommentbyPostbyId = async (req, res, next) => {
+try{
+
+  const { id } = req.params;
+  const comments = await Comment.find({post:id}).populate("user", "-passwordHash -followers -following -_id -email").sort("-createdAt");
+
+// add the count of the likes in the comment
+for (const comment of comments) {
+  comment.likesCount = comment.likes.length;}
+  
+  res.status(200).json({ message: "Comments fetched successfully", comments });
+
+}catch(error){
+
+  next(error);
+}
+
+
+
+};
+
+
+
+
 // like the comment on a post
-const likedComment = async (req, res, next) => {
+const unlikedComment = async (req, res, next) => {
   try {
     const { id } = req.params;
     const user = req.user;
@@ -180,13 +234,105 @@ const getPostbyId = async (req, res, next) => {
   }
 };
 
+
+const getallposts = async (req, res, next) => {
+  try {
+    const posts = await Post.find()
+      .populate("user", "-passwordHash -followers -following -_id -email")
+      .sort("-createdAt");
+
+    const worker = new Worker("./worker/postWorker.js");
+
+    worker.postMessage(posts);
+
+    worker.on("message", (result) => {
+      res.status(200).json({
+        message: "Posts fetched successfully",
+        posts: result.filteredPosts,
+        postIds: result.postIds,
+      });
+    });
+
+    worker.on("error", (error) => {
+      next(error);
+    });
+  } catch (error) {
+    next(error);
+  }
+  
+};
+
+  // get specific user full posts by username
+  // get all the posts
+  // get all the posts by a specific user
+  const userspecificposts = async (req, res, next) => {
+    try {
+      const username = req.params.username;
+      const user = await User.findOne({ username: username }).select(
+        "-passwordHash"
+      );
+
+      // check if th euser is private or does the user follow this user
+
+      if(user.private||!user.followers.includes(req.user._id)){
+        return res
+          .status(401)
+          .json({ message: "User is private", success: false });
+      }
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: "User not found", success: false });
+      }
+
+      const posts = await Post.find({ user: user._id })
+        .populate("user", "-passwordHash -followers -following -_id -email")
+        .sort("-createdAt");
+
+      res.status(200).json({ message: "Posts fetched successfully", posts });
+    }
+    catch (error) {
+      next(error);
+    }
+  };
+
+
+// like a comment
+ const likedComment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const comment = await Comment.findById(id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment id should be provided" });
+    }
+    if(comment.likes.includes(user._id)){
+      return res.status(400).json({ message: "Comment already liked" });
+    }
+    comment.likes.push(user._id);
+    await comment.save();
+    res.status(200).json({ message: "Comment liked successfully", comment });
+  }
+catch (error) {
+    next(error);
+  }
+ };
 // Export the post controller function
 export {
   likePost,
   deletePost,
   uploadPost,
+  getCommentbyPostbyId,
   commentPost,
   userPosts,
+  unlikePost,
+  unlikedComment,
   likedComment,
   getPostbyId,
+  getallposts,
+  userspecificposts
 };
