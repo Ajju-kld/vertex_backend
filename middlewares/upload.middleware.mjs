@@ -34,6 +34,10 @@ const s3Client = new S3Client(clientConfig);
 const upload = multer({ dest: "temp/" });
 const uploadToSpaces = async ({ file, destination }) => {
   try {
+
+    console.log("file:", file);
+    console.log("destination:", destination);
+    console.log("inside uploadToSpaces");
     const fileStream = fs.createReadStream(file.path);
     const fileName = `${destination}/${file.filename}${path.extname(
       file.originalname
@@ -72,9 +76,12 @@ const uploadToSpaces = async ({ file, destination }) => {
 
 
 const handleFileUpload = (fieldName) => {
+  console.log("fieldName:", fieldName);
+  console.log("upload:inside handleFile");
   return (req, res, next) => {
     upload.single(fieldName)(req, res, async (err) => {
       if (err) {
+        console.error("Error uploading file:", err);
         return res.status(400).json({ error: err.message });
       }
 
@@ -86,7 +93,7 @@ const handleFileUpload = (fieldName) => {
           } catch (unlinkError) {
             console.error("Error deleting file:", unlinkError);
           }
-        };
+           };
       }
 
       next();
