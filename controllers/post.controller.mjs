@@ -8,6 +8,8 @@ const { Worker } ='worker_threads';
 
 const uploadPost = async (req, res, next) => {
   try {
+    console.log("req.user:", req.user);
+    
     const destination=`${req.user.username}/post`;
     if (!req.file) {
       return res.status(400).json({ message: "Post content is required" });
@@ -18,6 +20,9 @@ const uploadPost = async (req, res, next) => {
         file: req.file,
         destination: destination,
     });
+
+    console.log("url:", url);
+
     // type of post
     const mimetype = req.file.mimetype;
 
