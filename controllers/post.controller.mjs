@@ -3,7 +3,7 @@ import { uploadToSpaces } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
-import { Worker } from "worker_threads";
+import { Worker, workerData } from "worker_threads";
 // Define your post controller function
 
 const uploadPost = async (req, res, next) => {
@@ -246,11 +246,11 @@ const getallposts = async (req, res, next) => {
       .populate("user", "-passwordHash -followers -following -_id -email")
       .sort("-createdAt");
 
-    const worker = new Worker("./worker/postWorker.js");
+    const worker = new Worker("./worker/postWorker.js",workerData(posts));
     console.log("worker:", worker);
 
 
-    worker.postMessage(posts);
+    
 
     worker.on("message", (result) => {
       res.status(200).json({
