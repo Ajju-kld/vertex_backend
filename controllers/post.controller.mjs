@@ -246,7 +246,9 @@ const getallposts = async (req, res, next) => {
       .populate("user", "-passwordHash -followers -following -_id -email")
       .sort("-createdAt")
       .select("_id");
-      console.log("posts:", posts);
+// only select id
+ const postIds = posts.map((post) => post._id);
+ console.log("postIds:", postIds);
           // const worker = new Worker("./postWorker.js", { workerData: posts });
           // console.log("worker:", worker);
       const Posts = await Post.aggregate([
@@ -278,7 +280,7 @@ const getallposts = async (req, res, next) => {
         },
       ]);
     // const worker = new Worker("./postWorker.js", { workerData: posts }); 
-    console.log("posts:", Posts);
+
     
   
 
