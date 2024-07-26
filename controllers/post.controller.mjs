@@ -3,14 +3,14 @@ import { uploadToSpaces } from "../middlewares/upload.middleware.mjs";
 import Comment from "../models/comments.model.mjs";
 import Post from "../models/post.model.mjs";
 import User from "../models/user.model.mjs";
-const { Worker } ='worker_threads';
+import { Worker } from "worker_threads";
 // Define your post controller function
 
 const uploadPost = async (req, res, next) => {
   try {
     console.log("req.user:", req.user);
     
-    const destination=`${req.user.username}/post`;
+    const destination=`${req.user.username}/posts`;
     if (!req.file) {
       return res.status(400).json({ message: "Post content is required" });
     }
@@ -247,6 +247,8 @@ const getallposts = async (req, res, next) => {
       .sort("-createdAt");
 
     const worker = new Worker("./worker/postWorker.js");
+    console.log("worker:", worker);
+
 
     worker.postMessage(posts);
 
