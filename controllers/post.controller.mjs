@@ -245,8 +245,8 @@ const getallposts = async (req, res, next) => {
     const posts = await Post.find().countDocuments();
     console.log("posts:", posts);
 // only select id
- const postIds = posts.map((post) => post._id);
- console.log("postIds:", postIds);
+//  const postIds = posts.map((post) => post._id);
+//  console.log("postIds:", postIds);
           // const worker = new Worker("./postWorker.js", { workerData: posts });
           // console.log("worker:", worker);
       const Posts = await Post.aggregate([
