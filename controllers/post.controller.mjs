@@ -244,7 +244,9 @@ const getallposts = async (req, res, next) => {
   try {
     const posts = await Post.find()
       .populate("user", "-passwordHash -followers -following -_id -email")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .select("_id");
+      console.log("posts:", posts);
           // const worker = new Worker("./postWorker.js", { workerData: posts });
           // console.log("worker:", worker);
       const Posts = await Post.aggregate([
