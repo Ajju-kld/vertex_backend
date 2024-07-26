@@ -246,7 +246,7 @@ const getallposts = async (req, res, next) => {
       .populate("user", "-passwordHash -followers -following -_id -email")
       .sort("-createdAt");
     console.log("posts:", posts);
-    const worker = new Worker("./worker/postWorker.js",{ workerData: posts });
+    const worker = new Worker("../worker/postWorker.js",{ workerData: posts });
     console.log("worker:", worker);
 
 
