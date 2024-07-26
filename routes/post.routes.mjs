@@ -8,7 +8,7 @@ import { handleFileUpload} from "../middlewares/upload.middleware.mjs";
 
 const router = Router();
 
-router.post('/upload',verifyToken,handleFileUpload,uploadPost);
+router.post('/upload',verifyToken,handleFileUpload('post'),uploadPost);
 router.get('/',verifyToken,getallposts);
 router.get('/user/',verifyToken,userPosts);
 router.get('/comment/:id',verifyToken,getCommentbyPostbyId);
