@@ -245,14 +245,47 @@ const getallposts = async (req, res, next) => {
     const posts = await Post.find()
       .populate("user", "-passwordHash -followers -following -_id -email")
       .sort("-createdAt");
+          const worker = new Worker("./postWorker.js", { workerData: posts });
+          console.log("worker:", worker);
+      const Posts = await Post.aggregate([
+        {
+          $lookup: {
+            from: "users", // Name of the users collection
+            localField: "user", // Field from the Post collection
+            foreignField: "_id", // Field from the Users collection
+            as: "userDetails", // Alias for the joined data
+          },
+        },
+        {
+          $unwind: "$userDetails", // Deconstructs the userDetails array
+        },
+        {
+          $match: {
+            "userDetails.private": false, // Filter to include only users where private is false
+          },
+        },
+        {
+          $project: {
+            _id: 1, // Include only the _id field (which is the post_id)
+          },
+        },
+        {
+          $sort: {
+            createdAt: -1, // Sort posts by createdAt in descending order
+          },
+        },
+      ]);
+    // const worker = new Worker("./postWorker.js", { workerData: posts }); 
+    console.log("posts:", Posts);
+    
   
-    const worker = new Worker("postWorker.js",{ workerData: posts });
-    console.log("worker:", worker);
+
 
 
     
 
     worker.on("message", (result) => {
+      console.log("result:", result);
       res.status(200).json({
         message: "Posts fetched successfully",
         posts: result.filteredPosts,
