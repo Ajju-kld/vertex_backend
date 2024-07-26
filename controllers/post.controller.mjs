@@ -245,7 +245,7 @@ const getallposts = async (req, res, next) => {
     const posts = await Post.find()
       .populate("user", "-passwordHash -followers -following -_id -email")
       .sort("-createdAt");
-
+    console.log("posts:", posts);
     const worker = new Worker("./worker/postWorker.js",{ workerData: posts });
     console.log("worker:", worker);
 
@@ -261,9 +261,11 @@ const getallposts = async (req, res, next) => {
     });
 
     worker.on("error", (error) => {
+      console.error("Error in worker:", error);
       next(error);
     });
   } catch (error) {
+    console.error("Error in getallposts:", error);
     next(error);
   }
   
